@@ -1,8 +1,33 @@
 # RestClient for Arduino
 
-HTTP Request library for Arduino and the Ethernet shield.
+HTTP Request library for Arduino.
 
-# Install
+This library is derived almost entirely from the great work done here: https://github.com/csquared/arduino-restclient
+
+## Examples
+
+The library comes with a number of example sketches. See File > Examples > PlugPlayREST
+within the Arduino application.
+
+## Limitations
+
+## Compatible Hardware
+
+The library uses the Arduino Ethernet Client api for interacting with the
+underlying network hardware. This means it Just Works with a growing number of
+boards and shields, including:
+
+ - Arduino Ethernet
+ - Arduino Ethernet Shield
+ - Arduino YUN – use the included `YunClient` in place of `EthernetClient`, and
+   be sure to do a `Bridge.begin()` first
+ - Arduino WiFi Shield
+ - Sparkfun WiFly Shield – [library](https://github.com/dpslwk/WiFly)
+ - TI CC3000 WiFi - [library](https://github.com/sparkfun/SFE_CC3000_Library)
+ - Intel Galileo/Edison
+ - ESP8266
+
+## Install
 
 Clone (or download and unzip) the repository to `~/Documents/Arduino/libraries`
 where `~/Documents/Arduino` is your sketchbook directory.
@@ -10,9 +35,9 @@ where `~/Documents/Arduino` is your sketchbook directory.
     > cd ~/Documents/Arduino
     > mkdir libraries
     > cd libraries
-    > git clone https://github.com/csquared/arduino-restclient.git RestClient
+    > git clone https://github.com/plugplayco/plugplay-arduino-rest.git PlugPlayREST
 
-# Usage
+## Usage
 
 ### Include
 
@@ -21,22 +46,29 @@ You need to have the `Ethernet` library already included.
 ```c++
 #include <Ethernet.h>
 #include <SPI.h>
-#include "RestClient.h"
+#include "PlugPlayREST.h"
 ```
 
-### RestClient(host/ip, [port])
+### PlugPlayREST(host/ip, [port])
 
-Constructor to create an RestClient object to make requests against.
+Constructor to create an PlugPlayREST object to make requests against.
 
 Use domain name and default to port 80:
 ```c++
-RestClient client = RestClient("arduino-http-lib-test.herokuapp.com");
+PlugPlayREST client("plugplay.co");
 ```
 
 Use a local IP and an explicit port:
 ```c++
-RestClient client = RestClient("192.168.1.50",5000);
+PlugPlayREST client("192.168.1.50",5000);
 ```
+### setAuth( const char* userKey, const char* boardId)
+
+Set authentication to connect to PlugPlay
+
+Arguments: 
+- *userKey* - user Key of your user account.
+- *boardId* - board Id of board you want to GET/PUT to.
 
 ### dhcp()
 
@@ -47,7 +79,7 @@ was successful or not
   client.dhcp()
 ```
 
-Note: you can have multiple RestClient objects but only need to call
+Note: you can have multiple PlugPlayREST objects but only need to call
 this once.
 
 Note: if you have multiple Arduinos on the same network, you'll need
@@ -83,64 +115,74 @@ You can skip the above methods and just configure the EthernetClient yourself:
 
 This is especially useful for debugging network connection issues.
 
+### char* createMsg(String dvName, float data0, float data1, float data2)
+
+Create a message to publish
+
+Arguments: 
+- *dvName* - device name
+- *data0* - first data
+- *data1* - second data
+- *data2* - third data
+
+Other functions:
+- char* **createMsg(String dvName, float data0)** - data1 and data2 are set to 0 
+- char* **createMsg(String dvName, float data0, float data1)** - data2 is set to 0
+
 ## RESTful methods
 
 All methods return an HTTP status code or 0 if there was an error.
 
-### `get(const char* path)`
-### `get(const char* path, String* response)`
+### int getPlugPlay(const char* topic)
+### int getPlugPlay(const char* topic, String* response)
 
 Start making requests!
 
 ```c++
-int statusCode = client.get("/"));
+int statusCode = client.getPlugPlay("inTopic");
 ```
 
 Pass in a string *by reference* for the response:
-```
+```c++
 String response = "";
-int statusCode = client.get("/", &response);
+int statusCode = client.getPlugPlay("inTopic", &response);
 ```
 
-### post(const char* path, const char* body)
-### post(const char* path, String* response)
-### post(const char* path, const char* body, String* response)
+### int putPlugPlay(const char* topic, const char* body)
+### int putPlugPlay(const char* topic, const char* body, String* response)
 
-```
+```c++
+int statusCode = 0;
+char* msg = client.createMsg("arduino", 0, 1, 2);
+statusCode = client.putPlugPlay("outTopic", msg);
 String response = "";
-int statusCode = client.post("/", &response);
-statusCode = client.post("/", "foo=bar");
-response = "";
-statusCode = client.post("/", "foo=bar", &response);
+statusCode = client.putPlugPlay("outTopic", msg, &response);
 ```
 
-### put(const char* path, const char* body)
-### put(const char* path, String* response)
-### put(const char* path, const char* body, String* response)
+### String getName(const char* payload)
 
-```
+Get device name from a received response
+
+```c++
 String response = "";
-int statusCode = client.put("/", &response);
-statusCode = client.put("/", "foo=bar");
-response = "";
-statusCode = client.put("/", "foo=bar", &response);
+int statusCode = client.getPlugPlay("inTopic", &response);
+client.getName(response.c_str());
 ```
 
-### del(const char* path)
-### del(const char* path, const char* body)
-### del(const char* path, String* response)
-### del(const char* path, const char* body, String* response)
+### float getData(const char* payload, const char* type)
 
-```
+Get data from a received response
+
+```c++
 String response = "";
-int statusCode = client.del("/", &response);
+int statusCode = client.getPlugPlay("inTopic", &response);
+// Get the first data
+client.getData(response.c_str(),"data0");
+// Get the second data
+client.getData(response.c_str(),"data1");
+// Get the third data
+client.getData(response.c_str(),"data2");
 ```
-
-## Full Example
-
-I test every way of calling the library (against a public heroku app)[https://github.com/csquared/arduino-http-test].
-
-You can find the file in File->Examples->RestClient->full_test_suite
 
 ## Debug Mode
 
@@ -152,8 +194,6 @@ If you're having trouble, you can always open `RestClient.cpp` and throw at the 
 
 Everything happening in the client will get printed to the Serial port.
 
-# Thanks
+## License
 
-[ricardochimal](https://github.com/ricardochimal) For all his c++ help.  Couldn't have done this without you!
-
-[theycallmeswift](https://github.com/theycallmeswift) Helping incept and debug v1.0
+This code is released under the MIT License.
