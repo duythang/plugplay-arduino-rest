@@ -115,6 +115,8 @@ You can skip the above methods and just configure the EthernetClient yourself:
 
 This is especially useful for debugging network connection issues.
 
+### char* createMsg(String dvName, float data0)
+### char* createMsg(String dvName, float data0, float data1)
 ### char* createMsg(String dvName, float data0, float data1, float data2)
 
 Create a message to send a PUT request
@@ -124,10 +126,6 @@ Arguments:
 - *data0* - first data
 - *data1* - second data
 - *data2* - third data
-
-Other functions:
-- char* **createMsg(String dvName, float data0)** - data1 and data2 are set to 0 
-- char* **createMsg(String dvName, float data0, float data1)** - data2 is set to 0
 
 ## RESTful methods
 
