@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:megaADK",
+    "sketch2": "examples\\simple_GET\\simple_GET.ino",
+    "sketch1": "examples\\simple_PUT\\simple_PUT.ino"
+}
