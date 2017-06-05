@@ -1,4 +1,4 @@
-/************************ PlugPlayMQTT ***********************/
+/************************ PlugPlayREST ***********************/
 
 1.0
     * Add ArduinoJson Lib at commit bff77ab 
