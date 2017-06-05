@@ -117,7 +117,7 @@ This is especially useful for debugging network connection issues.
 
 ### char* createMsg(String dvName, float data0, float data1, float data2)
 
-Create a message to publish
+Create a message to send a PUT request
 
 Arguments: 
 - *dvName* - device name
@@ -183,6 +183,10 @@ client.getData(response.c_str(),"data1");
 // Get the third data
 client.getData(response.c_str(),"data2");
 ```
+
+### Other functions
+
+You can refer here: https://github.com/csquared/arduino-restclient
 
 ## Debug Mode
 
